@@ -1,5 +1,4 @@
 const isValidName = (name) => {
-    // let pattern = /^[A-Za-z\s]{1,}[\.]{0,1}[A-Za-z\s]{0,}$/g;
     let pattern = /^[a-zA-Z]+$/g;
     return pattern.test(name);
 }

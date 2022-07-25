@@ -1,10 +1,10 @@
 const {isValidObjectId} = require('mongoose');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+
 const userModel = require('../models/userModel');
 const {isValidName, isValidEmail, isValidPassword, isValidPhone, isValidPincode, isValidFile} = require('../validation/validator');
-const {uploadFile} = require('../middleware/awsS3'); 
-const { findOneAndUpdate } = require('../models/userModel');
+const {uploadFile} = require('../aws/awsS3'); 
 
 const signUp = async (req, res) => {
     try{
@@ -110,7 +110,7 @@ const getProfile = async (req, res) => {
         else return res.status(404).json({status: false, message: 'User not found'});
     }
     catch(err){
-        res.stauts(500).json({status: false, message: err.message});
+        res.status(500).json({status: false, message: err.message});
     }
 }
 
@@ -165,7 +165,7 @@ const updateProfile = async (req, res) => {
                 data['profileImage'] = image;
             }
         }
-        let updateProfile = await userModel.findOneAndUpdate({_id: userId}, data, {new: true});
+        let updateProfile = await userModel.findOneAndUpdate({_id: userId}, {$set: {...data}}, {new: true});
         res.status(200).json({status: true, message: 'Profile Updated', data: updateProfile});
     }
     catch(err){
