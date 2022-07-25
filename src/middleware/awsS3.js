@@ -23,18 +23,3 @@ let uploadFile = async (file) => {
 }
 
 module.exports = {uploadFile};
-
-
-
-// {
-//     "shipping": {
-//         "street": "4th Line",
-//         "city": "Adoni",
-//         "pincode": "512121"
-//     },
-//     "billing": {
-//         "street": "4th Line",
-//         "city": "Adoni",
-//         "pincode": "512121"
-//     }
-// }

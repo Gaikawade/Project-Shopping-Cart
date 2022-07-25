@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const userModel = require('../models/userModel');
 const {isValidName, isValidEmail, isValidPassword, isValidPhone, isValidPincode, isValidFile} = require('../validation/validator');
 const {uploadFile} = require('../middleware/awsS3'); 
+const { findOneAndUpdate } = require('../models/userModel');
 
 const signUp = async (req, res) => {
     try{
@@ -49,7 +50,6 @@ const signUp = async (req, res) => {
         data['password'] = hashPassword;
 
         const isUniqueEmail =await userModel.findOne({email});
-console.log(isUniqueEmail)
         if(isUniqueEmail) return res.status(400).json({status: false, message: `This email is already registered`});
         const isUniquePhone = await userModel.findOne({phone});
         if(isUniquePhone) return res.status(400).json({status: false, message: `This phone is already registered`});
@@ -116,10 +116,60 @@ const getProfile = async (req, res) => {
 
 const updateProfile = async (req, res) => {
     try{
+        let userId = req.params.userId
+        let data = req.body;
+        if(Object.keys(data).length < 1 ) return res.status(400).json({status: false, message: 'Please enter User details to update profile'});
+        let {fname, lname, email, password, phone, address} = data;
 
+        if(fname){
+            if(!isValidName(fname))  return res.status(400).json({status: false, message: `Please enter a valid first name`});
+        }
+        if(lname){
+            if(!isValidName(lname))  return res.status(400).json({status: false, message: `Please enter a valid last name`});
+        }
+        if(email){
+            if(!isValidEmail(email)) return res.status(400).json({status: false, message: `Please enter a valid email address`});
+            const isUniqueEmail =await userModel.findOne({email});
+            if(isUniqueEmail) return res.status(400).json({status: false, message: `This email is already registered`});
+        }
+        if(password){
+            if(!isValidPassword(password)) return res.status(400).json({status: false, message: `Password Should be 8-15 characters which contains at least one numeric digit, one uppercase and one special character`});
+            let hashPassword = bcrypt.hashSync(password, 10);
+             data['password'] = hashPassword;
+        }
+        if(phone){
+            if(!isValidPhone(phone)) return res.status(400).json({status: false, message: `Please enter a valid phone number`});
+        }
+        if(address){
+            let parsed = JSON.parse(data.address);
+            address = parsed;
+            data.address = address;
+        
+            let {shipping, billing} = address;
+            if(shipping){
+                // if(!isValidName(shipping.street)) return res.status(400).json({status: false, message: `Please enter valid shipping street`});
+                if(!isValidName(shipping.city)) return res.status(400).json({status: false, message: `Please enter valid shipping city`});
+                if(!isValidPincode(shipping.pincode)) return res.status(400).json({status: false, message: `Please enter valid shipping pincode`});
+            }
+            if(billing){
+                // if(!isValidName(billing.street)) return res.status(400).json({status: false, message: `Please enter valid billing street`});
+                if(!isValidName(billing.city)) return res.status(400).json({status: false, message: `Please enter valid billing city`});
+                if(!isValidPincode(billing.pincode)) return res.status(400).json({status: false, message: `Please enter valid billing pincode`});
+            }
+        }
+        if(req.files){
+            let file = req.files;
+            if(file && file.length > 0){
+                // if(isValidFile) return res.status(200).json({status: false, message: `Please upload gif|jpeg|jpg|png|webp|bmp format file only`});
+                let image = await uploadFile(file[0]);
+                data['profileImage'] = image;
+            }
+        }
+        let updateProfile = await userModel.findOneAndUpdate({_id: userId}, data, {new: true});
+        res.status(200).json({status: true, message: 'Profile Updated', data: updateProfile});
     }
     catch(err){
-        res.stauts(500).json({status: false, message: err.message});
+        res.status(500).json({status: false, message: err.message});
     }
 }
 
