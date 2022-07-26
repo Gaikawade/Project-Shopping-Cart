@@ -1,3 +1,9 @@
+const isValid = (value) => {
+    if(typeof value === "undefined" || value === null) return false;
+    if (typeof value === "string" && value.trim().length === 0) return false;
+    return true;
+}
+
 const isValidName = (name) => {
     let pattern = /^[a-zA-Z]+$/g;
     return pattern.test(name);
@@ -24,11 +30,12 @@ const isValidPincode = (pincode) => {
 }
 
 const isValidFile = (file) => {
-    pattern = /\.(gif|jpeg|jpg|png|webp|bmp)$/g;
+    pattern = /\.(jpg|JPG|jpeg|JPEG|gif|GIF|png|PNG|webp|WEBP|bmp|BMP)$/i;
     return pattern.test(file);
 }
 
 module.exports = {
+    isValid,
     isValidName,
     isValidPhone,
     isValidEmail,

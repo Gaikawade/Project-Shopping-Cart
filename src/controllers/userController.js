@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
 const userModel = require('../models/userModel');
-const {isValidName, isValidEmail, isValidPassword, isValidPhone, isValidPincode, isValidFile} = require('../validation/validator');
+const {isValid, isValidName, isValidEmail, isValidPassword, isValidPhone, isValidPincode, isValidFile} = require('../validation/validator');
 const {uploadFile} = require('../aws/awsS3'); 
 
 const signUp = async (req, res) => {
@@ -27,9 +27,8 @@ const signUp = async (req, res) => {
         if(!isValidPhone(phone)) return res.status(400).json({status: false, message: `Please enter a valid phone number`});
 
         if(address){
-            let parsed = JSON.parse(data.address);
-            address = parsed;
-            data.address = address;
+            address = JSON.parse(data.address);
+            data[`address`] = address;
         }else{
             return res.status(400).json({status: false, message: `Please enter address`});
         }
@@ -38,11 +37,11 @@ const signUp = async (req, res) => {
         if(!shipping) return res.status(400).json({status: false, message: `Please enter shipping address`});
         if(!billing) return res.status(400).json({status: false, message: `Please enter billing address`});
 
-        // if(!isValidName(shipping.street)) return res.status(400).json({status: false, message: `Please enter valid shipping street`});
+        if(!isValid(shipping.street)) return res.status(400).json({status: false, message: `Please enter valid shipping street`});
         if(!isValidName(shipping.city)) return res.status(400).json({status: false, message: `Please enter valid shipping city`});
         if(!isValidPincode(shipping.pincode)) return res.status(400).json({status: false, message: `Please enter valid shipping pincode`});
 
-        // if(!isValidName(billing.street)) return res.status(400).json({status: false, message: `Please enter valid billing street`});
+        if(!isValid(billing.street)) return res.status(400).json({status: false, message: `Please enter valid billing street`});
         if(!isValidName(billing.city)) return res.status(400).json({status: false, message: `Please enter valid billing city`});
         if(!isValidPincode(billing.pincode)) return res.status(400).json({status: false, message: `Please enter valid billing pincode`});
 
@@ -55,7 +54,7 @@ const signUp = async (req, res) => {
         if(isUniquePhone) return res.status(400).json({status: false, message: `This phone is already registered`});
 
         if(file && file.length > 0){
-            // if(isValidFile) return res.status(200).json({status: false, message: `Please upload gif|jpeg|jpg|png|webp|bmp format file only`});
+            if(!isValidFile(file[0])) return res.status(200).json({status: false, message: `Please upload jpg|jpeg|gif|png|webp|bmp format file only`});
             let image = await uploadFile(file[0]);
             data['profileImage'] = image;
         }else{
@@ -63,7 +62,7 @@ const signUp = async (req, res) => {
         }
 
         let userData = await userModel.create(data);
-        res.status(201).json({status: true, message: 'Sign Up Successfull', data: userData});
+        res.status(201).json({status: true, message: 'Successfully Signed Up', data: userData});
     }
     catch(err){
         console.log(err)
@@ -86,11 +85,11 @@ const signIn = async (req, res) => {
         if(!passwordEn) return res.status(401).json({status: false, message: `Invalid password`});
 
         let token = jwt.sign(
-            {userId: userData._id.toString()},
-            "SecreteValue",
-            {expiresIn: '60min'}
+            {userId: userData._id.toString()},  //? Payload
+            "SecreteValue",                     //? Secret Key
+            {expiresIn: '60min'}                //? Expiration
         );
-        res.setHeader('Authorization', 'Bearer ' + token);
+        res.setHeader(`Authorization`, token);
         return res.status(200).json({status: true, message: `Successfully signed in`, data: {userId: userData._id, token: token}});
     }
     catch(err){
@@ -118,7 +117,16 @@ const updateProfile = async (req, res) => {
     try{
         let userId = req.params.userId
         let data = req.body;
-        if(Object.keys(data).length < 1 ) return res.status(400).json({status: false, message: 'Please enter User details to update profile'});
+        if(Object.keys(data).length < 1 ){
+            return res.status(400).json({status: false, message: 'Please enter User details to update profile'});
+        }
+        // else(req.files == 0){
+        //     return res.status(400).json({status: false, message: 'Please enter User details to update profile'});
+        // }
+        let userData = await userModel.findOne({_id: userId});
+        if(userData) newAddress = userData.address;
+        else return res.status(404).json({status: false, message: 'No user found with that id'});
+
         let {fname, lname, email, password, phone, address} = data;
 
         if(fname){
@@ -147,20 +155,43 @@ const updateProfile = async (req, res) => {
         
             let {shipping, billing} = address;
             if(shipping){
-                // if(!isValidName(shipping.street)) return res.status(400).json({status: false, message: `Please enter valid shipping street`});
-                if(!isValidName(shipping.city)) return res.status(400).json({status: false, message: `Please enter valid shipping city`});
-                if(!isValidPincode(shipping.pincode)) return res.status(400).json({status: false, message: `Please enter valid shipping pincode`});
+                let {street, city, pincode} = shipping;
+                if(street){
+                    if(!isValid(street)) return res.status(400).json({status: false, message: `Please enter valid shipping street`});
+                    newAddress.shipping.street = street;
+                }
+                if(city){
+                    if(!isValidName(city)) return res.status(400).json({status: false, message: `Please enter valid shipping city`});
+                    newAddress.shipping.city = city;
+                }
+                if(pincode){
+                    if(!isValidPincode(pincode)) return res.status(400).json({status: false, message: `Please enter valid shipping pincode`});
+                    newAddress.shipping.pincode = pincode;
+                }
             }
             if(billing){
-                // if(!isValidName(billing.street)) return res.status(400).json({status: false, message: `Please enter valid billing street`});
-                if(!isValidName(billing.city)) return res.status(400).json({status: false, message: `Please enter valid billing city`});
-                if(!isValidPincode(billing.pincode)) return res.status(400).json({status: false, message: `Please enter valid billing pincode`});
+                let {street, city, pincode} = billing;
+                if(street){
+                    if(!isValid(street)) return res.status(400).json({status: false, message: `Please enter valid billing street`});
+                    newAddress.billing.street = street;
+                }
+                if(city){
+                    if(!isValidName(city)) return res.status(400).json({status: false, message: `Please enter valid billing city`});
+                    newAddress.billing.city = city;
+                }
+                if(pincode){
+                    if(!isValidPincode(pincode)) return res.status(400).json({status: false, message: `Please enter valid billing pincode`});
+                    newAddress.billing.pincode = pincode;
+                }
             }
+            data['address'] = newAddress;
+console.log(data.address)
+console.log(newAddress)
         }
         if(req.files){
             let file = req.files;
             if(file && file.length > 0){
-                // if(isValidFile) return res.status(200).json({status: false, message: `Please upload gif|jpeg|jpg|png|webp|bmp format file only`});
+                if(isValidFile(file[0])) return res.status(200).json({status: false, message: `Please upload gif|jpeg|jpg|png|webp|bmp format file only`});
                 let image = await uploadFile(file[0]);
                 data['profileImage'] = image;
             }
