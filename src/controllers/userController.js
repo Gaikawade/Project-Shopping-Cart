@@ -54,11 +54,11 @@ const signUp = async (req, res) => {
         if(isUniquePhone) return res.status(400).json({status: false, message: `This phone is already registered`});
 
         if(file && file.length > 0){
-            if(!isValidFile(file[0])) return res.status(200).json({status: false, message: `Please upload jpg|jpeg|gif|png|webp|bmp format file only`});
-            let image = await uploadFile(file[0]);
-            data['profileImage'] = image;
+            if(!isValidFile(file[0].mimetype)) return res.status(200).json({status: false, message: `Please upload jpg|jpeg|gif|png|webp|bmp format file only`});
+            let imageURL = await uploadFile(file[0]);
+            data['profileImage'] = imageURL;
         }else{
-            return res.status(400).json({status: false, message: `No image is selected`});
+            return res.status(400).json({status: false, message: `No imageURL is selected`});
         }
 
         let userData = await userModel.create(data);
@@ -100,8 +100,6 @@ const signIn = async (req, res) => {
 const getProfile = async (req, res) => {
     try{
         let userId = req.params.userId;
-        if(!userId) return res.status(400).json({status: false, message: 'User Id is required'});
-
         if(!isValidObjectId(userId)) return res.status(400).json({status: false, message: 'User Id is not valid'});
 
         const user = await userModel.findOne({_id: userId});
@@ -117,17 +115,24 @@ const updateProfile = async (req, res) => {
     try{
         let userId = req.params.userId
         let data = req.body;
-        if(Object.keys(data).length < 1 ){
-            return res.status(400).json({status: false, message: 'Please enter User details to update profile'});
-        }
-        // else(req.files == 0){
-        //     return res.status(400).json({status: false, message: 'Please enter User details to update profile'});
-        // }
+        let file = req.files;
+
+        if(!isValidObjectId(userId)) return res.status(400).json({status: false, message: `Please enter a valid User ID`});
         let userData = await userModel.findOne({_id: userId});
         if(userData) newAddress = userData.address;
         else return res.status(404).json({status: false, message: 'No user found with that id'});
 
-        let {fname, lname, email, password, phone, address} = data;
+        if(file && file.length > 0){
+            if(isValidFile(file[0])) return res.status(200).json({status: false, message: `Please upload gif|jpeg|jpg|png|webp|bmp format file only`});
+            let imageURL = await uploadFile(file[0]);
+            data['profileImage'] = imageURL;
+        }
+
+        if(!file){
+            if(!Object.keys(data).length) return res.status(400).json({status: false, message: 'Please enter User details to update profile'});
+        }
+        
+        let {fname, lname, email, password, phone, address, profileImage} = data;
 
         if(fname){
             if(!isValidName(fname))  return res.status(400).json({status: false, message: `Please enter a valid first name`});
@@ -142,8 +147,10 @@ const updateProfile = async (req, res) => {
         }
         if(password){
             if(!isValidPassword(password)) return res.status(400).json({status: false, message: `Password Should be 8-15 characters which contains at least one numeric digit, one uppercase and one special character`});
+            let oldPassword = await bcrypt.compare(password, userData.password)
+            if(password == oldPassword) return res.status(400).json({status: false, message: 'Please enter a new password which is different from the old password'});
             let hashPassword = bcrypt.hashSync(password, 10);
-             data['password'] = hashPassword;
+            data['password'] = hashPassword;
         }
         if(phone){
             if(!isValidPhone(phone)) return res.status(400).json({status: false, message: `Please enter a valid phone number`});
@@ -185,17 +192,8 @@ const updateProfile = async (req, res) => {
                 }
             }
             data['address'] = newAddress;
-console.log(data.address)
-console.log(newAddress)
         }
-        if(req.files){
-            let file = req.files;
-            if(file && file.length > 0){
-                if(isValidFile(file[0])) return res.status(200).json({status: false, message: `Please upload gif|jpeg|jpg|png|webp|bmp format file only`});
-                let image = await uploadFile(file[0]);
-                data['profileImage'] = image;
-            }
-        }
+        
         let updateProfile = await userModel.findOneAndUpdate({_id: userId}, {$set: {...data}}, {new: true});
         res.status(200).json({status: true, message: 'Profile Updated', data: updateProfile});
     }

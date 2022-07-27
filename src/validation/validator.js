@@ -30,7 +30,8 @@ const isValidPincode = (pincode) => {
 }
 
 const isValidFile = (file) => {
-    pattern = /\.(jpg|JPG|jpeg|JPEG|gif|GIF|png|PNG|webp|WEBP|bmp|BMP)$/i;
+    let pattern = /image\/(png|jpe?g|gif)/;
+    console.log(pattern.test(file))
     return pattern.test(file);
 }
 
