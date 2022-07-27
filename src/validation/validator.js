@@ -1,6 +1,7 @@
 const isValid = (value) => {
     if(typeof value === "undefined" || value === null) return false;
     if (typeof value === "string" && value.trim().length === 0) return false;
+    if(typeof value === 'number' && value.toString().length === 0) return false;
     return true;
 }
 
@@ -31,8 +32,12 @@ const isValidPincode = (pincode) => {
 
 const isValidFile = (file) => {
     let pattern = /image\/(png|jpe?g|gif)/;
-    console.log(pattern.test(file))
     return pattern.test(file);
+}
+
+const isValidText = (value) => {
+    let pattern = /[a-zA-Z]+([\s][a-zA-Z]+)*/;
+    return pattern.test(value);
 }
 
 module.exports = {
@@ -42,5 +47,6 @@ module.exports = {
     isValidEmail,
     isValidPassword,
     isValidPincode,
-    isValidFile
+    isValidFile,
+    isValidText,
 };

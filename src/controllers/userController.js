@@ -58,7 +58,7 @@ const signUp = async (req, res) => {
             let imageURL = await uploadFile(file[0]);
             data['profileImage'] = imageURL;
         }else{
-            return res.status(400).json({status: false, message: `No imageURL is selected`});
+            return res.status(400).json({status: false, message: `No image is selected`});
         }
 
         let userData = await userModel.create(data);
