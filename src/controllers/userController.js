@@ -103,8 +103,10 @@ const getProfile = async (req, res) => {
         if(!isValidObjectId(userId)) return res.status(400).json({status: false, message: 'User Id is not valid'});
 
         const user = await userModel.findOne({_id: userId});
-        if(user) return res.status(200).json({status: true, message: 'User Profile Details', data: user});
-        else return res.status(404).json({status: false, message: 'User not found'});
+        if(!user) return res.status(404).json({status: false, message: 'User not found'});
+        if(!req.userId == userData._id) return res.status(400).json({status: false, message: 'You are not authorize'});
+
+        res.status(200).json({status: true, message: 'User Profile Details', data: user});
     }
     catch(err){
         res.status(500).json({status: false, message: err.message});
@@ -115,23 +117,15 @@ const updateProfile = async (req, res) => {
     try{
         let userId = req.params.userId
         let data = req.body;
-        let file = req.files;
+        let files = req.files;
+        if(!Object.keys(data).length && !req.files) return res.status(400).json({status: false, message: 'Please enter User details to update profile'});
 
         if(!isValidObjectId(userId)) return res.status(400).json({status: false, message: `Please enter a valid User ID`});
         let userData = await userModel.findOne({_id: userId});
-        if(userData) newAddress = userData.address;
-        else return res.status(404).json({status: false, message: 'No user found with that id'});
 
-        if(file && file.length > 0){
-            if(isValidFile(file[0])) return res.status(200).json({status: false, message: `Please upload gif|jpeg|jpg|png|webp|bmp format file only`});
-            let imageURL = await uploadFile(file[0]);
-            data['profileImage'] = imageURL;
-        }
+        if(!req.userId == userData._id) return res.status(400).json({status: false, message: 'You are not authorize'});
+        if(!userData) return res.status(404).json({status: false, message: 'No user found with that id'});
 
-        if(!file){
-            if(!Object.keys(data).length) return res.status(400).json({status: false, message: 'Please enter User details to update profile'});
-        }
-        
         let {fname, lname, email, password, phone, address, profileImage} = data;
 
         if(fname){
@@ -193,7 +187,13 @@ const updateProfile = async (req, res) => {
             }
             data['address'] = newAddress;
         }
-        
+
+        if(files.length > 0){
+            if(isValidFile(files[0])) return res.status(200).json({status: false, message: `Please upload gif|jpeg|jpg|png|webp|bmp format file only`});
+            let imageURL = await uploadFile(files[0]);
+            data['profileImage'] = imageURL;
+        }
+
         let updateProfile = await userModel.findOneAndUpdate({_id: userId}, {$set: {...data}}, {new: true});
         res.status(200).json({status: true, message: 'Profile Updated', data: updateProfile});
     }

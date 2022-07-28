@@ -7,7 +7,6 @@ const route = require('./routes/route');
 const app = express();
 
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
 app.use(multer().any());
 
 let DBString = "mongodb+srv://Mahesh8985:lz9fOW52615YVat4@cluster0.l5fafvk.mongodb.net/productsManagement";

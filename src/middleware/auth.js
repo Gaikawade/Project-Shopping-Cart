@@ -8,7 +8,7 @@ const authentication = function (req, res, next) {
 
         let splitToken = token.split(' ');
 
-        let decodedToken = jwt.verify(splitToken[1], "SecreteValue", (error, decodedToken) => {
+        jwt.verify(splitToken[1], "SecreteValue", (error, decodedToken) => {
             if (error) {
                 const message = error.message == "jwt expired" ? "Token is expired" : "Token is invalid";
                 return res.status(401).send({ status: false, message });
