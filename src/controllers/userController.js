@@ -3,14 +3,14 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
 const userModel = require('../models/userModel');
-const {isValid, isValidName, isValidEmail, isValidPassword, isValidPhone, isValidPincode, isValidFile} = require('../validation/validator');
-const {uploadFile} = require('../aws/awsS3'); 
+const {isValid, isValidName, isValidEmail, isValidPassword, isValidPhone, isValidPincode, isValidFile} = require('../middleware/validator');
+const {uploadFile} = require('../middleware/aws');
 
 const signUp = async (req, res) => {
     try{
         let data = req.body;
         let file = req.files;
-        if(!Object.keys(data).length > 0) return res.status(400).json({status: false, message: 'Please enter User details'});
+        if(!Object.keys(data).length > 0 && !req.files) return res.status(400).json({status: false, message: 'Please enter User details'});
         let {fname, lname, email, password, phone, address} = data;
 
         if(!fname)    return res.status(400).json({status: false, message: `Please enter User's first name`});
@@ -130,14 +130,20 @@ const updateProfile = async (req, res) => {
 
         if(fname){
             if(!isValidName(fname))  return res.status(400).json({status: false, message: `Please enter a valid first name`});
+        }else if(fname= ''){
+            return res.status(400).json({status: false, message: `First name field can be empty`})
         }
         if(lname){
             if(!isValidName(lname))  return res.status(400).json({status: false, message: `Please enter a valid last name`});
+        }else if(lname = ''){
+            return res.status(400).json({status: false, message: `Last name field can be empty`})
         }
         if(email){
             if(!isValidEmail(email)) return res.status(400).json({status: false, message: `Please enter a valid email address`});
             const isUniqueEmail =await userModel.findOne({email});
             if(isUniqueEmail) return res.status(400).json({status: false, message: `This email is already registered`});
+        }else if(email = ''){
+            return res.status(400).json({status: false, message: `email field can be empty`})
         }
         if(password){
             if(!isValidPassword(password)) return res.status(400).json({status: false, message: `Password Should be 8-15 characters which contains at least one numeric digit, one uppercase and one special character`});
@@ -145,9 +151,13 @@ const updateProfile = async (req, res) => {
             if(password == oldPassword) return res.status(400).json({status: false, message: 'Please enter a new password which is different from the old password'});
             let hashPassword = bcrypt.hashSync(password, 10);
             data['password'] = hashPassword;
+        }else if(password = ''){
+            return res.status(400).json({status: false, message: `password field can be empty`})
         }
         if(phone){
             if(!isValidPhone(phone)) return res.status(400).json({status: false, message: `Please enter a valid phone number`});
+        }else if(phone = ''){
+            return res.status(400).json({status: false, message: `Phone field can be empty`})
         }
         if(address){
             let parsed = JSON.parse(data.address);
@@ -186,6 +196,8 @@ const updateProfile = async (req, res) => {
                 }
             }
             data['address'] = newAddress;
+        }else if( address = ''){
+            return res.status(400).json({status: false, message: `Address field can be empty`})
         }
 
         if(files.length > 0){

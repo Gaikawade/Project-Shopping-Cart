@@ -1,7 +1,7 @@
 const {isValidObjectId} = require('mongoose');
 const productModel = require('../models/productModel');
-const {uploadFile} = require('../aws/awsS3');
-const {isValid, isValidText, isValidFile} = require('../validation/validator');
+const {uploadFile} = require('../middleware/aws');
+const {isValid, isValidText, isValidFile} = require('../middleware/validator');
 
 const listedSizes = ['S', 'XS', 'M', 'L', 'X', 'XL', 'XXL'];
 
@@ -47,7 +47,6 @@ const listing = async (req, res) => {
             if(!isValidText(style)) return res.status(400).json({status: false, message: `Style key only accepts alpha characters`});
         }
 
-        const listedSizes = ['S', 'XS', 'M', 'L', 'X', 'XL', 'XXL'];
         let givenSizes = availableSizes.toUpperCase().split(',').map(x => x.trim());
         for(let i in givenSizes){
             if(!listedSizes.includes(givenSizes[i]))
@@ -90,9 +89,9 @@ const fetchByFilter = async (req, res) => {
         if(isValid(size)){
             if(size){
                 let givenSizes = size.split(',').map(x => x.trim().toUpperCase());
-                check = givenSizes.every(x => listedSizes.some(y => x==y));
-                if(check) filter[`availableSizes`] = givenSizes;
-                else return res.status(400).json({status: false, message:'Error'});
+                let check = givenSizes.every(x => listedSizes.some(y => x==y));
+                if(check) filter[`availableSizes`] = {$in: givenSizes};
+                else return res.status(400).json({status: false, message: `Available sizes must be of ${listedSizes}`});
             }
         }else if(size == ''){
             return res.status(400).json({status: false, message: `Size field can't be empty`});
