@@ -190,13 +190,15 @@ const updateListing = async (req, res) => {
             if(!isValidText(style)) return res.status(400).json({status: false, message: `Style key only accepts alpha characters`});
         }
 
-        const listedSizes = ['S', 'XS', 'M', 'L', 'X', 'XL', 'XXL'];
-        let givenSizes = availableSizes.toUpperCase().split(',').map(x => x.trim());
-        for(let i in givenSizes){
-            if(!listedSizes.includes(givenSizes[i]))
-                return res.status(400).json({status: false, message: `Sizes must include ${listedSizes}`});
+        if(availableSizes || availableSizes == ''){
+            const listedSizes = ['S', 'XS', 'M', 'L', 'X', 'XL', 'XXL'];
+            let givenSizes = availableSizes.split(',').map(x => x.trim().toUpperCase());
+            for(let i in givenSizes){
+                if(!listedSizes.includes(givenSizes[i]))
+                    return res.status(400).json({status: false, message: `Sizes must include ${listedSizes}`});
+            }
+            data[`availableSizes`] = givenSizes;
         }
-        data[`availableSizes`] = givenSizes;
 
         if(installments || installments === ''){
             if(!isValid(installments)) return res.status(400).json({status: false, message: 'Installments field cant be empty'}); 
@@ -212,9 +214,11 @@ const updateListing = async (req, res) => {
             let imageURL = await uploadFile(file[0]);
             console.log(imageURL)
             data[`productImage`] = imageURL;
-        }else{
-            return res.status(400).json({status: false, message: `No image is selected`});
         }
+
+        let updateListing = await productModel.findOneAndUpdate({_id}, {$set: {...data}}, {new: true});
+        if(!updateListing) return res.status(404).json({status: false, message: 'Product not found'});
+        res.status(200).json({status: true, message: 'Product updated successful', data: updateListing});
     }
     catch(err){
         res.status(500).json({status: false, message: err.message});

@@ -104,7 +104,7 @@ const getProfile = async (req, res) => {
 
         const user = await userModel.findOne({_id: userId});
         if(!user) return res.status(404).json({status: false, message: 'User not found'});
-        if(!req.userId == userData._id) return res.status(400).json({status: false, message: 'You are not authorize'});
+        if(!req.userId == user._id) return res.status(400).json({status: false, message: 'You are not authorize'});
 
         res.status(200).json({status: true, message: 'User Profile Details', data: user});
     }
