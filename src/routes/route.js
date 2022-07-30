@@ -16,7 +16,7 @@ router.get('/products/:productId', fetchById);
 router.put('/products/:productId', updateListing);
 router.delete('/products/:productId', deleteListing);
 
-router.all('/**', (res) => {
+router.all('/**', (req, res) => {
     res.status(404).json({status: false, message: 'No such URL Found'});
 })
 

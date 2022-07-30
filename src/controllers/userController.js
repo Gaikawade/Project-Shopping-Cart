@@ -126,78 +126,74 @@ const updateProfile = async (req, res) => {
         if(!req.userId == userData._id) return res.status(400).json({status: false, message: 'You are not authorize'});
         if(!userData) return res.status(404).json({status: false, message: 'No user found with that id'});
 
-        let {fname, lname, email, password, phone, address, profileImage} = data;
+        let {fname, lname, email, password, phone, address} = data;
 
-        if(fname){
+        if(Object.hasOwnProperty.bind(data)('fname')){  //!same as data.hasOwnProperty('fname')
+            if(fname == '') return res.status(400).json({status: false, message: `First Name field can be empty`});
             if(!isValidName(fname))  return res.status(400).json({status: false, message: `Please enter a valid first name`});
-        }else if(fname= ''){
-            return res.status(400).json({status: false, message: `First name field can be empty`})
+            userData.fname = fname;
         }
-        if(lname){
+        if(Object.hasOwnProperty.bind(data)('lname')){
+            if(lname == '') return res.status(400).json({status: false, message: `Last Name field can be empty`});
             if(!isValidName(lname))  return res.status(400).json({status: false, message: `Please enter a valid last name`});
-        }else if(lname = ''){
-            return res.status(400).json({status: false, message: `Last name field can be empty`})
+            userData.lname = lname;
         }
-        if(email){
+        if(Object.hasOwnProperty.bind(data)('email')){
+            if(email == '') return res.status(400).json({status: false, message: `Email field can be empty`});
             if(!isValidEmail(email)) return res.status(400).json({status: false, message: `Please enter a valid email address`});
             const isUniqueEmail =await userModel.findOne({email});
             if(isUniqueEmail) return res.status(400).json({status: false, message: `This email is already registered`});
-        }else if(email = ''){
-            return res.status(400).json({status: false, message: `email field can be empty`})
+            userData.email = email;
         }
-        if(password){
+        if(Object.hasOwnProperty.bind(data)('password')){
+            if(password == '') return res.status(400).json({status: false, message: `Password field can be empty`});
             if(!isValidPassword(password)) return res.status(400).json({status: false, message: `Password Should be 8-15 characters which contains at least one numeric digit, one uppercase and one special character`});
-            let oldPassword = await bcrypt.compare(password, userData.password)
-            if(password == oldPassword) return res.status(400).json({status: false, message: 'Please enter a new password which is different from the old password'});
+            let oldPassword = bcrypt.compareSync(password, userData.password);
+            if(oldPassword) return res.status(400).json({status: false, message: 'Please enter a new password which is different from the old password'});
             let hashPassword = bcrypt.hashSync(password, 10);
-            data['password'] = hashPassword;
-        }else if(password = ''){
-            return res.status(400).json({status: false, message: `password field can be empty`})
+            userData.password = hashPassword;
         }
-        if(phone){
+        if(Object.hasOwnProperty.bind(data)('phone')){
+            if(phone == '') return res.status(400).json({status: false, message: `Phone field can be empty`});
             if(!isValidPhone(phone)) return res.status(400).json({status: false, message: `Please enter a valid phone number`});
-        }else if(phone = ''){
-            return res.status(400).json({status: false, message: `Phone field can be empty`})
+            userData.phone = phone;
         }
-        if(address){
+        if(Object.hasOwnProperty.bind(data)('address')){
+            if(address =='') return res.status(400).json({status: false, message: `Address field can not be empty`});
             let parsed = JSON.parse(data.address);
-            address = parsed;
-            data.address = address;
-        
+            address = data.address = parsed;
+
             let {shipping, billing} = address;
             if(shipping){
                 let {street, city, pincode} = shipping;
-                if(street){
+                if(address.hasOwnProperty('street')){
                     if(!isValid(street)) return res.status(400).json({status: false, message: `Please enter valid shipping street`});
-                    newAddress.shipping.street = street;
+                    userData.address.shipping.street = street;
                 }
-                if(city){
+                if(Object.hasOwnProperty.bind(shipping)('city')){
                     if(!isValidName(city)) return res.status(400).json({status: false, message: `Please enter valid shipping city`});
-                    newAddress.shipping.city = city;
+                    userData.address.shipping.city = city;
                 }
-                if(pincode){
+                if(Object.hasOwnProperty.bind(shipping)('pincode')){
                     if(!isValidPincode(pincode)) return res.status(400).json({status: false, message: `Please enter valid shipping pincode`});
-                    newAddress.shipping.pincode = pincode;
+                    userData.address.shipping.pincode = pincode;
                 }
             }
             if(billing){
                 let {street, city, pincode} = billing;
-                if(street){
+                if(Object.hasOwnProperty.bind(billing)('street')){
                     if(!isValid(street)) return res.status(400).json({status: false, message: `Please enter valid billing street`});
-                    newAddress.billing.street = street;
+                    userData.address.billing.street = street;
                 }
-                if(city){
+                if(Object.hasOwnProperty.bind(billing)('city')){
                     if(!isValidName(city)) return res.status(400).json({status: false, message: `Please enter valid billing city`});
-                    newAddress.billing.city = city;
+                    userData.address.billing.city = city;
                 }
-                if(pincode){
+                if(Object.hasOwnProperty.bind(billing)('pincode')){
                     if(!isValidPincode(pincode)) return res.status(400).json({status: false, message: `Please enter valid billing pincode`});
-                    newAddress.billing.pincode = pincode;
+                    userData.address.billing.pincode =pincode;
                 }
             }
-            data['address'] = newAddress;
-        }else if( address = ''){
-            return res.status(400).json({status: false, message: `Address field can be empty`})
         }
 
         if(files.length > 0){
@@ -206,8 +202,8 @@ const updateProfile = async (req, res) => {
             data['profileImage'] = imageURL;
         }
 
-        let updateProfile = await userModel.findOneAndUpdate({_id: userId}, {$set: {...data}}, {new: true});
-        res.status(200).json({status: true, message: 'Profile Updated', data: updateProfile});
+        userData.save();
+        res.status(200).json({status: true, message: 'Profile Updated', data: userData});
     }
     catch(err){
         res.status(500).json({status: false, message: err.message});
@@ -215,3 +211,10 @@ const updateProfile = async (req, res) => {
 }
 
 module.exports = {signUp, signIn, getProfile, updateProfile};
+
+
+// {
+//     "shipping": {
+//         "pincode": "518302"
+//     }
+// }

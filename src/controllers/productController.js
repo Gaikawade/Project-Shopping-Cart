@@ -8,13 +8,14 @@ const listedSizes = ['S', 'XS', 'M', 'L', 'X', 'XL', 'XXL'];
 const listing = async (req, res) => {
     try{
         let data = req.body;
-        if(Object.keys(data).length == 0) return res.status(400).json({status: false, message: 'Please provide data to listing a product'});
+        if(Object.keys(data).length == 0 && !req.files) return res.status(400).json({status: false, message: 'Please provide data to listing a product'});
         let {title, description, price, currencyId, currencyFormat, isFreeShipping, style, availableSizes, installments} = data;
 
         if(!title) return res.status(400).json({status: false, message: 'Title must be provided'});
         if(!description) return res.status(400).json({status: false, message: 'Description must be provided'});
         if(!price) return res.status(400).json({status: false, message: 'Price must be provided'});
         if(!availableSizes) return res.status(400).json({status: false, message: 'AvailableSizes must be provided'});
+        if(!address) return res.status(400).json({status: false, message: 'Address must be provided'});
 
         if(!isValid(title)) return res.status(400).json({status: false, message: `This is not a valid Title`});
         if(!isValidText(title)) return res.status(400).json({status: false, message: `Please provide a valid Title for the product`});
@@ -43,7 +44,7 @@ const listing = async (req, res) => {
             if(!['true', 'false'].includes(isFreeShipping)) return res.status(400).json({status: false, message: `isFreeShipping is either true or false`});
         }
 
-        if(style || style == ''){
+        if(style in data){
             if(!isValidText(style)) return res.status(400).json({status: false, message: `Style key only accepts alpha characters`});
         }
 
