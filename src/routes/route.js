@@ -17,9 +17,9 @@ router.get('/products/:productId', fetchById);
 router.put('/products/:productId', updateListing);
 router.delete('/products/:productId', deleteListing);
 
-router.post('/users/:userId/cart', createCart);
+router.post('/users/:userId/cart', authentication, createCart);
 router.put('/users/:userId/cart', updateCart);
-router.get('/users/:userId/cart', getCart);
+router.get('/users/:userId/cart', authentication, getCart);
 router.delete('/users/:userId/cart', deleteCart);
 
 router.all('/**', (req, res) => {
