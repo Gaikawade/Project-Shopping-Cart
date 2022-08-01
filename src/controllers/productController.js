@@ -87,7 +87,7 @@ const fetchByFilter = async (req, res) => {
         if(isValid(size)){
             if(size){
                 let givenSizes = size.split(',').map(x => x.trim().toUpperCase());
-                let check = givenSizes.every(x => listedSizes.some(y => x==y));
+                let check = givenSizes.every(x => listedSizes.some(y => x==y)); //*Instead of using FOR Loop and INCLUDE Function
                 if(check) filter[`availableSizes`] = {$in: givenSizes};
                 else return res.status(400).json({status: false, message: `Available sizes must be of ${listedSizes}`});
             }
@@ -189,10 +189,8 @@ const updateListing = async (req, res) => {
 
         if(Object.hasOwnProperty.bind(data)('availableSizes')){
             let givenSizes = availableSizes.split(',').map(x => x.trim().toUpperCase());
-            for(let i in givenSizes){
-                if(!listedSizes.includes(givenSizes[i]))
+            if(givenSizes.every(x => listedSizes.some(y => x==y)))
                     return res.status(400).json({status: false, message: `Sizes must include ${listedSizes}`});
-            }
             data[`availableSizes`] = {$in: givenSizes};
         }
 

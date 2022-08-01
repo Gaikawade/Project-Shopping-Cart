@@ -21,7 +21,7 @@ const createCart = async (req, res) => {
 
         if(!isValid(productId) || !isValidObjectId(productId)) return res.status(400).json({status: false, message: `Please provide a valid product ID`});
         if(Object.hasOwnProperty.bind(body)('quantity')){
-            if(isNaN(Number(quantity))) return res.status(200).json({status: false, message: `Quantity must be a number`});
+            if(isNaN(quantity)) return res.status(200).json({status: false, message: `Quantity must be a number`});
             if(quantity <= 0) return res.status(400).json({status: false, message: `Quantity must be greater than zero`});
         }else quantity = 1;
 
