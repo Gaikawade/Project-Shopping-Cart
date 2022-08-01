@@ -122,13 +122,12 @@ const updateProfile = async (req, res) => {
 
         if(!isValidObjectId(userId)) return res.status(400).json({status: false, message: `Please enter a valid User ID`});
         let userData = await userModel.findOne({_id: userId});
-
-        if(!req.userId == userData._id) return res.status(400).json({status: false, message: 'You are not authorize'});
+        if(req.userId != userData._id.toString()) return res.status(400).json({status: false, message: 'You are not authorize'});
         if(!userData) return res.status(404).json({status: false, message: 'No user found with that id'});
 
         let {fname, lname, email, password, phone, address} = data;
 
-        if(Object.hasOwnProperty.bind(data)('fname')){  //!same as data.hasOwnProperty('fname')
+        if(Object.hasOwnProperty.bind(data)('fname')){  //*same as data.hasOwnProperty('fname')
             if(fname == '') return res.status(400).json({status: false, message: `First Name field can be empty`});
             if(!isValidName(fname))  return res.status(400).json({status: false, message: `Please enter a valid first name`});
             userData.fname = fname;
@@ -211,10 +210,3 @@ const updateProfile = async (req, res) => {
 }
 
 module.exports = {signUp, signIn, getProfile, updateProfile};
-
-
-// {
-//     "shipping": {
-//         "pincode": "518302"
-//     }
-// }
