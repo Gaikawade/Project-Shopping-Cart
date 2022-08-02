@@ -1,16 +1,16 @@
-const {isValidObjectId} = require('mongoose');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
+const {isValidObjectId} = require(`mongoose`);
+const jwt = require(`jsonwebtoken`);
+const bcrypt = require(`bcrypt`);
 
-const userModel = require('../models/userModel');
-const {isValid, isValidName, isValidEmail, isValidPassword, isValidPhone, isValidPincode, isValidFile} = require('../middleware/validator');
-const {uploadFile} = require('../middleware/aws');
+const userModel = require(`../models/userModel`);
+const {isValid, isValidName, isValidEmail, isValidPassword, isValidPhone, isValidPincode, isValidFile} = require(`../middleware/validator`);
+const {uploadFile} = require(`../middleware/aws`);
 
 const signUp = async (req, res) => {
     try{
         let data = req.body;
         let file = req.files;
-        if(!Object.keys(data).length > 0 && !req.files) return res.status(400).json({status: false, message: 'Please enter User details'});
+        if(!Object.keys(data).length > 0 && !req.files) return res.status(400).json({status: false, message: `Please enter User details`});
         let {fname, lname, email, password, phone, address} = data;
 
         if(!fname)    return res.status(400).json({status: false, message: `Please enter User's first name`});
@@ -46,7 +46,7 @@ const signUp = async (req, res) => {
         if(!isValidPincode(billing.pincode)) return res.status(400).json({status: false, message: `Please enter valid billing pincode`});
 
         let hashPassword = bcrypt.hashSync(password, 10);
-        data['password'] = hashPassword;
+        data[`password`] = hashPassword;
 
         const isUniqueEmail =await userModel.findOne({email});
         if(isUniqueEmail) return res.status(400).json({status: false, message: `This email is already registered`});
@@ -56,13 +56,13 @@ const signUp = async (req, res) => {
         if(file && file.length > 0){
             if(!isValidFile(file[0].mimetype)) return res.status(200).json({status: false, message: `Please upload jpg|jpeg|gif|png|webp|bmp format file only`});
             let imageURL = await uploadFile(file[0]);
-            data['profileImage'] = imageURL;
+            data[`profileImage`] = imageURL;
         }else{
             return res.status(400).json({status: false, message: `No image is selected`});
         }
 
         let userData = await userModel.create(data);
-        res.status(201).json({status: true, message: 'Successfully Signed Up', data: userData});
+        res.status(201).json({status: true, message: `Successfully Signed Up`, data: userData});
     }
     catch(err){
         console.log(err)
@@ -100,13 +100,13 @@ const signIn = async (req, res) => {
 const getProfile = async (req, res) => {
     try{
         let userId = req.params.userId;
-        if(!isValidObjectId(userId)) return res.status(400).json({status: false, message: 'User Id is not valid'});
+        if(!isValidObjectId(userId)) return res.status(400).json({status: false, message: `User Id is not valid`});
 
         const user = await userModel.findOne({_id: userId});
-        if(!user) return res.status(404).json({status: false, message: 'User not found'});
-        if(!req.userId == user._id) return res.status(400).json({status: false, message: 'You are not authorize'});
+        if(!user) return res.status(404).json({status: false, message: `User not found`});
+        if(!req.userId == user._id) return res.status(400).json({status: false, message: `You are not authorize`});
 
-        res.status(200).json({status: true, message: 'User Profile Details', data: user});
+        res.status(200).json({status: true, message: `User Profile Details`, data: user});
     }
     catch(err){
         res.status(500).json({status: false, message: err.message});
@@ -118,46 +118,46 @@ const updateProfile = async (req, res) => {
         let userId = req.params.userId
         let data = req.body;
         let files = req.files;
-        if(!Object.keys(data).length && !req.files) return res.status(400).json({status: false, message: 'Please enter User details to update profile'});
+        if(!Object.keys(data).length && !req.files) return res.status(400).json({status: false, message: `Please enter User details to update profile`});
 
         if(!isValidObjectId(userId)) return res.status(400).json({status: false, message: `Please enter a valid User ID`});
         let userData = await userModel.findOne({_id: userId});
-        if(req.userId != userData._id.toString()) return res.status(400).json({status: false, message: 'You are not authorize'});
-        if(!userData) return res.status(404).json({status: false, message: 'No user found with that id'});
+        if(req.userId != userData._id.toString()) return res.status(400).json({status: false, message: `You are not authorize`});
+        if(!userData) return res.status(404).json({status: false, message: `No user found with that id`});
 
         let {fname, lname, email, password, phone, address} = data;
 
-        if(Object.hasOwnProperty.bind(data)('fname')){  //*same as data.hasOwnProperty('fname')
+        if(Object.hasOwnProperty.bind(data)(`fname`)){  //*same as data.hasOwnProperty(`fname`)
             if(fname == '') return res.status(400).json({status: false, message: `First Name field can be empty`});
             if(!isValidName(fname))  return res.status(400).json({status: false, message: `Please enter a valid first name`});
             userData.fname = fname;
         }
-        if(Object.hasOwnProperty.bind(data)('lname')){
+        if(Object.hasOwnProperty.bind(data)(`lname`)){
             if(lname == '') return res.status(400).json({status: false, message: `Last Name field can be empty`});
             if(!isValidName(lname))  return res.status(400).json({status: false, message: `Please enter a valid last name`});
             userData.lname = lname;
         }
-        if(Object.hasOwnProperty.bind(data)('email')){
+        if(Object.hasOwnProperty.bind(data)(`email`)){
             if(email == '') return res.status(400).json({status: false, message: `Email field can be empty`});
             if(!isValidEmail(email)) return res.status(400).json({status: false, message: `Please enter a valid email address`});
             const isUniqueEmail =await userModel.findOne({email});
             if(isUniqueEmail) return res.status(400).json({status: false, message: `This email is already registered`});
             userData.email = email;
         }
-        if(Object.hasOwnProperty.bind(data)('password')){
+        if(Object.hasOwnProperty.bind(data)(`password`)){
             if(password == '') return res.status(400).json({status: false, message: `Password field can be empty`});
             if(!isValidPassword(password)) return res.status(400).json({status: false, message: `Password Should be 8-15 characters which contains at least one numeric digit, one uppercase and one special character`});
             let oldPassword = bcrypt.compareSync(password, userData.password);
-            if(oldPassword) return res.status(400).json({status: false, message: 'Please enter a new password which is different from the old password'});
+            if(oldPassword) return res.status(400).json({status: false, message: `Please enter a new password which is different from the old password`});
             let hashPassword = bcrypt.hashSync(password, 10);
             userData.password = hashPassword;
         }
-        if(Object.hasOwnProperty.bind(data)('phone')){
+        if(Object.hasOwnProperty.bind(data)(`phone`)){
             if(phone == '') return res.status(400).json({status: false, message: `Phone field can be empty`});
             if(!isValidPhone(phone)) return res.status(400).json({status: false, message: `Please enter a valid phone number`});
             userData.phone = phone;
         }
-        if(Object.hasOwnProperty.bind(data)('address')){
+        if(Object.hasOwnProperty.bind(data)(`address`)){
             if(address =='') return res.status(400).json({status: false, message: `Address field can not be empty`});
             let parsed = JSON.parse(data.address);
             address = data.address = parsed;
@@ -165,30 +165,30 @@ const updateProfile = async (req, res) => {
             let {shipping, billing} = address;
             if(shipping){
                 let {street, city, pincode} = shipping;
-                if(address.hasOwnProperty('street')){
+                if(address.hasOwnProperty(`street`)){
                     if(!isValid(street)) return res.status(400).json({status: false, message: `Please enter valid shipping street`});
                     userData.address.shipping.street = street;
                 }
-                if(Object.hasOwnProperty.bind(shipping)('city')){
+                if(Object.hasOwnProperty.bind(shipping)(`city`)){
                     if(!isValidName(city)) return res.status(400).json({status: false, message: `Please enter valid shipping city`});
                     userData.address.shipping.city = city;
                 }
-                if(Object.hasOwnProperty.bind(shipping)('pincode')){
+                if(Object.hasOwnProperty.bind(shipping)(`pincode`)){
                     if(!isValidPincode(pincode)) return res.status(400).json({status: false, message: `Please enter valid shipping pincode`});
                     userData.address.shipping.pincode = pincode;
                 }
             }
             if(billing){
                 let {street, city, pincode} = billing;
-                if(Object.hasOwnProperty.bind(billing)('street')){
+                if(Object.hasOwnProperty.bind(billing)(`street`)){
                     if(!isValid(street)) return res.status(400).json({status: false, message: `Please enter valid billing street`});
                     userData.address.billing.street = street;
                 }
-                if(Object.hasOwnProperty.bind(billing)('city')){
+                if(Object.hasOwnProperty.bind(billing)(`city`)){
                     if(!isValidName(city)) return res.status(400).json({status: false, message: `Please enter valid billing city`});
                     userData.address.billing.city = city;
                 }
-                if(Object.hasOwnProperty.bind(billing)('pincode')){
+                if(Object.hasOwnProperty.bind(billing)(`pincode`)){
                     if(!isValidPincode(pincode)) return res.status(400).json({status: false, message: `Please enter valid billing pincode`});
                     userData.address.billing.pincode =pincode;
                 }
@@ -198,11 +198,11 @@ const updateProfile = async (req, res) => {
         if(files.length > 0){
             if(isValidFile(files[0])) return res.status(200).json({status: false, message: `Please upload gif|jpeg|jpg|png|webp|bmp format file only`});
             let imageURL = await uploadFile(files[0]);
-            data['profileImage'] = imageURL;
+            data[`profileImage`] = imageURL;
         }
 
         userData.save();
-        res.status(200).json({status: true, message: 'Profile Updated', data: userData});
+        res.status(200).json({status: true, message: `Profile Updated`, data: userData});
     }
     catch(err){
         res.status(500).json({status: false, message: err.message});

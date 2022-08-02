@@ -1,9 +1,9 @@
-const { isValidObjectId } = require('mongoose');
+const { isValidObjectId } = require(`mongoose`);
 
-const cartModel = require('../models/cartModel');
-const userModel = require('../models/userModel');
-const productModel = require('../models/productModel');
-const { isValid } = require('../middleware/validator');
+const cartModel = require(`../models/cartModel`);
+const userModel = require(`../models/userModel`);
+const productModel = require(`../models/productModel`);
+const { isValid } = require(`../middleware/validator`);
 
 const createCart = async (req, res) => {
     try{
@@ -19,12 +19,12 @@ const createCart = async (req, res) => {
         if(Object.keys(body).length == 0) return res.status(400).json({status: false, message: `Please provide some data to create your cart`});
         let {productId, quantity} = body;
 
-        if(Object.hasOwnProperty.bind(body)('productId')){
+        if(Object.hasOwnProperty.bind(body)(`productId`)){
             if(!isValid(productId) || !isValidObjectId(productId)) return res.status(400).json({status: false, message: `Please provide a valid product ID`});
         }else{
             return res.status(400).json({status: false, message: `Product must be provided in order to be created`});
         }
-        if(Object.hasOwnProperty.bind(body)('quantity')){
+        if(Object.hasOwnProperty.bind(body)(`quantity`)){
             if(isNaN(quantity)) return res.status(200).json({status: false, message: `Quantity must be a number`});
             if(quantity <= 0) return res.status(400).json({status: false, message: `Quantity must be greater than zero`});
         }else quantity = 1;
@@ -73,18 +73,18 @@ const updateCart = async (req, res) => {
 
         let userData = await userModel.findById(userId);
         if(!userData) return res.status(404).json({status: false, message: `User does not exist`});
-        if(req.userId !== userData._id.toString()) return res.status(400).json({status: false, message: 'You are not authorize'});
+        if(req.userId !== userData._id.toString()) return res.status(400).json({status: false, mesfsage: `You are not authorize`});
 
         let body = req.body
         if(Object.keys(body).length == 0) return res.status(400).json({status: false, message: `Please provide some data to create your cart`});
         let {productId, removeProduct} = body;
 
-        if(Object.hasOwnProperty.bind(body)('productId')){
+        if(Object.hasOwnProperty.bind(body)(`productId`)){
             if(!isValid(productId) || !isValidObjectId(productId)) return res.status(400).json({status: false, message: `Please provide a valid product ID`});
         }else{
             return res.status(400).json({status: false, message: `Product must be provided in order to be remove from the cart`});
         }
-        if(Object.hasOwnProperty.bind(body)('removeProduct')){
+        if(Object.hasOwnProperty.bind(body)(`removeProduct`)){
             if(isNaN(removeProduct)) return res.status(200).json({status: false, message: `Quantity must be a number`});
             if(![0,-1].includes(removeProduct)) return res.status(400).json({status: false, message: `Quantity must be zero or -1`});
         }else{
@@ -92,7 +92,7 @@ const updateCart = async (req, res) => {
         }
 
         let cartData = await cartModel.findOne({userId});
-        if(!cartData) return res.status(404).json({status: false, message: 'Cart does not exist'});
+        if(!cartData) return res.status(404).json({status: false, message: `Cart does not exist`});
 
         let productData = await productModel.findOne({_id: productId, isDeleted: false});
         if(!productData) return res.status(404).json({status: false, message: `Product not found`});
@@ -144,11 +144,11 @@ const getCart = async (req, res) => {
 
         let userData = await userModel.findById(userId);
         if(!userData) return res.status(404).json({status: false, message: `User does not exist`});
-        if(req.userId != userData._id.toString()) return res.status(400).json({status: false, message: 'You are not authorize'});
+        if(req.userId != userData._id.toString()) return res.status(400).json({status: false, message: `You are not authorize`});
 
         let cartData = await cartModel.findOne({userId});
-        if(!cartData) return res.status(404).json({status: false, message: 'Cart does not exist'});
-        res.status(200).json({status: true, message: 'Cart details', data: cartData});
+        if(!cartData) return res.status(404).json({status: false, message: `Cart does not exist`});
+        res.status(200).json({status: true, message: `Cart details`, data: cartData});
     }
     catch(err){
         res.status(500).json({status: false, message: err.message});
@@ -162,14 +162,14 @@ const deleteCart = async (req, res) => {
 
         let userData = await userModel.findById(userId);
         if(!userData) return res.status(404).json({status: false, message: `User does not exist`});
-        if(req.userId != userData._id.toString()) return res.status(400).json({status: false, message: 'You are not authorize'});
+        if(req.userId != userData._id.toString()) return res.status(400).json({status: false, message: `You are not authorize`});
 
         let cartData = await cartModel.findOne({userId});
-        if(!cartData) return res.status(404).json({status: false, message: 'Cart does not exist'});
-        if(cartData.totalPrice == 0) return res.status(404).json({status: false, message: 'Your cart is empty'});
+        if(!cartData) return res.status(404).json({status: false, message: `Cart does not exist`});
+        if(cartData.totalPrice == 0) return res.status(404).json({status: false, message: `Your cart is empty`});
 
         let deletion = await cartModel.findOneAndUpdate({userId}, {$set: {items: [], totalPrice: 0, totalItems: 0}});
-        res.status(204).json({status: false, message: 'Cart deleted successfully', data: deletion});
+        res.status(204).json({status: false, message: `Cart deleted successfully`, data: deletion});
     }
     catch(err){
         res.status(500).json({status: false, message: err.message});
