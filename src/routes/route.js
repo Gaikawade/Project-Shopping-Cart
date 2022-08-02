@@ -18,9 +18,9 @@ router.put('/products/:productId', updateListing);
 router.delete('/products/:productId', deleteListing);
 
 router.post('/users/:userId/cart', authentication, createCart);
-router.put('/users/:userId/cart', updateCart);
+router.put('/users/:userId/cart', authentication, updateCart);
 router.get('/users/:userId/cart', authentication, getCart);
-router.delete('/users/:userId/cart', deleteCart);
+router.delete('/users/:userId/cart',authentication, deleteCart);
 
 router.all('/**', (req, res) => {
     res.status(404).json({status: false, message: 'No such URL Found'});
