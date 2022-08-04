@@ -4,6 +4,7 @@ const {uploadFile} = require(`../middleware/aws`);
 const {isValid, isValidText, isValidFile} = require(`../middleware/validator`);
 
 const listedSizes = ['S', 'XS', 'M', 'L', 'X', 'XL', 'XXL'];
+const isBoolean = ['true', 'false'];
 
 const listing = async (req, res) => {
     try{
@@ -40,7 +41,7 @@ const listing = async (req, res) => {
         }
 
         if(Object.hasOwnProperty.bind(data)(`isFreeShipping`)){
-            if(!['true', 'false'].includes(isFreeShipping)) return res.status(400).json({status: false, message: `isFreeShipping is either true or false`});
+            if(!isBoolean.includes(isFreeShipping)) return res.status(400).json({status: false, message: `isFreeShipping is either true or false`});
         }
 
         if(Object.hasOwnProperty.bind(data)(`style`)){
@@ -180,7 +181,7 @@ const updateListing = async (req, res) => {
             if(currencyFormat !== "₹") return res.status(400).json({status: false, message: `Currency Format must be in '₹' only`});
         }
         if(Object.hasOwnProperty.bind(data)(`isFreeShipping`)){
-            if(!['true', 'false'].includes(isFreeShipping)) return res.status(400).json({status: false, message: `isFreeShipping is either true or false`});
+            if(!isBoolean.includes(isFreeShipping)) return res.status(400).json({status: false, message: `isFreeShipping is either true or false`});
         }
 
         if(Object.hasOwnProperty.bind(data)(`style`)){
