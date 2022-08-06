@@ -25,7 +25,7 @@ const createCart = async (req, res) => {
             return res.status(400).json({status: false, message: `Product must be provided in order to be created`});
         }
         if(Object.hasOwnProperty.bind(body)(`quantity`)){
-            if(isNaN(quantity)) return res.status(200).json({status: false, message: `Quantity must be a number`});
+            if(isNaN(quantity)) return res.status(400).json({status: false, message: `Quantity must be a number`});
             if(quantity <= 0) return res.status(400).json({status: false, message: `Quantity must be greater than zero`});
         }else quantity = 1;
 
@@ -45,20 +45,20 @@ const createCart = async (req, res) => {
         }
         else{
             let totalPrice = cartData.totalPrice + (quantity * productData.price);
-            totalPrice = totalPrice.toFixed(2);
+            // totalPrice = Number(totalPrice.toFixed(2));
             let items = cartData.items;
             for(i=0; i<items.length; i++){
                 if(items[i].productId.toString() == productId){
                     items[i].quantity +=quantity;
                     let updateCartData = {items: items, totalPrice, totalItems: items.length};
                     let updatedCart = await cartModel.findOneAndUpdate({_id: cartData._id}, updateCartData, {new: true});
-                    return res.status(200).json({status: true, message:`Product added successfully`, data: updatedCart});
+                    return res.status(201).json({status: true, message:`Product added successfully`, data: updatedCart});
                 }
             }
             items.push({productId: productId, quantity: quantity});
             let updateCartData = {items: items, totalPrice, totalItems: items.length};
             let updatedCart = await cartModel.findOneAndUpdate({_id: cartData._id}, updateCartData, {new: true});
-            return res.status(200).json({status: true, message: `Product added successfully`, data: updatedCart});
+            return res.status(201).json({status: true, message: `Product added successfully`, data: updatedCart});
         }
     }
     catch(err){
@@ -85,8 +85,8 @@ const updateCart = async (req, res) => {
             return res.status(400).json({status: false, message: `Product must be provided in order to be remove from the cart`});
         }
         if(Object.hasOwnProperty.bind(body)(`removeProduct`)){
-            if(isNaN(removeProduct)) return res.status(200).json({status: false, message: `Quantity must be a number`});
-            if(![0,-1].includes(removeProduct)) return res.status(400).json({status: false, message: `Quantity must be zero or -1`});
+            if(isNaN(removeProduct)) return res.status(400).json({status: false, message: `Quantity must be a number`});
+            if(![0,1].includes(removeProduct)) return res.status(400).json({status: false, message: `Quantity must be 0 or 1`});
         }else{
             return res.status(400).json({status: false, message: `Quantity must be provided in order to be remove from the cart`});
         }

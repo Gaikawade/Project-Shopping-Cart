@@ -27,8 +27,8 @@ router.get('/users/:userId/cart', authentication, getCart);
 router.delete('/users/:userId/cart',authentication, deleteCart);
 
 //*Order's API endpoint
-router.post('/users/:userId/orders', createOrder);
-router.put('/users/:userId/orders', updateOrder);
+router.post('/users/:userId/orders', authentication, createOrder);
+router.put('/users/:userId/orders', authentication, updateOrder);
 
 router.all('/**', (a, b) => {
     b.status(404).json({status: false, message: 'No such URL Exists'});

@@ -103,19 +103,19 @@ const fetchByFilter = async (req, res) => {
         }
 
         if(Object.hasOwnProperty.bind(data)(`priceGreaterThan`)){
-            // if(isValid(priceGreaterThan)) return res.status(400).json({status: false, message: `Price greater than field can't be empty`});
+            if(!isValid(priceGreaterThan)) return res.status(400).json({status: false, message: `Price greater than field can't be empty`});
             if(isNaN(priceGreaterThan)) return res.status(400).json({status: false, message: `Please enter a valid price`});
             if(priceGreaterThan < 0) return res.status(400).json({status: false, message: `Price can't be less than zero`});
-            filter[`price`] = {$gt: priceGreaterThan};
-        }else if(priceGreaterThan == ''){
-            return res.status(400).json({status: false, message: `Price field can't be empty`});
+            filter[`price`] = {};
+            filter[`price`][`$gte`] = Number(priceGreaterThan);
         }
 
         if(Object.hasOwnProperty.bind(data)(`priceLessThan`)){
-            // if(isValid(priceLessThan)) return res.status(400).json({status: false, message: `Price less than field can't be empty`});
+            if(!isValid(priceLessThan)) return res.status(400).json({status: false, message: `Price less than field can't be empty`});
             if(isNaN(priceLessThan)) return res.status(400).json({status: false, message: `Please enter a valid price`});
             if(priceLessThan <= 0) return res.status(400).json({status: false, message: `Price can't be less than zero or zero`});
-            filter[`price`] = {$lt: priceLessThan};
+            filter[`price`] = {};
+            filter[`price`][`$lte`] = Number(priceLessThan);
         }
 
         if(Object.hasOwnProperty.bind(data)(`sortPrice`)){
