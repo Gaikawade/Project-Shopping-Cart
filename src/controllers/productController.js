@@ -106,18 +106,17 @@ const fetchByFilter = async (req, res) => {
             if(!isValid(priceGreaterThan)) return res.status(400).json({status: false, message: `Price greater than field can't be empty`});
             if(isNaN(priceGreaterThan)) return res.status(400).json({status: false, message: `Please enter a valid price`});
             if(priceGreaterThan < 0) return res.status(400).json({status: false, message: `Price can't be less than zero`});
-            filter[`price`] = {};
-            filter[`price`][`$gte`] = Number(priceGreaterThan);
+            filter[`price`] = {$gte: priceGreaterThan};
         }
 
         if(Object.hasOwnProperty.bind(data)(`priceLessThan`)){
             if(!isValid(priceLessThan)) return res.status(400).json({status: false, message: `Price less than field can't be empty`});
             if(isNaN(priceLessThan)) return res.status(400).json({status: false, message: `Please enter a valid price`});
             if(priceLessThan <= 0) return res.status(400).json({status: false, message: `Price can't be less than zero or zero`});
-            filter[`price`] = {};
-            filter[`price`][`$lte`] = Number(priceLessThan);
+            if(priceGreaterThan) filter[`price`]= {$gte: priceGreaterThan, $lte: priceLessThan};
+            else filter[`price`] = {$lte: priceLessThan};
         }
-
+        
         if(Object.hasOwnProperty.bind(data)(`sortPrice`)){
             if(!['1','-1'].includes(sortPrice)) return res.status(400).json({status: false, message: `Sort price must be 1 or -1`});
             let products = await productModel.find(filter).sort({price: sortPrice});
