@@ -45,7 +45,7 @@ const createOrder = async (req, res) => {
             cancellable: cancellable
         }
         let orderPlaced = await orderModel.create(orderDetails);
-        await cartModel.findByIdAndUpdate(cartId, {items: [], totalPrice: 0,totalItems: 0});
+        await cartModel.findOneAndUpdate(cartId, {items: [], totalPrice: 0,totalItems: 0});
         return res.status(201).json({status: true, message: `Order placed successfully`, data: orderPlaced});
     }
     catch(err){
@@ -90,20 +90,22 @@ const updateOrder = async (req, res) => {
         if(status == 'completed'){
             if(orderData.status == 'cancelled') return res.status(400).json({status: false, message: `Order can't be updated to complete, because it is already cancelled`});
             if(orderData.status == 'completed') return res.status(400).json({status: false, message: `Your Order is already completed`});
-            let orderUpdate = await cartModel.findByIdAndUpdate({_id: orderId},
+            await cartModel.findOneAndUpdate({userId},
                 {$set: {items: [], totalPrice: 0, totalItems: 0, totalQuantity: 0, status}},
                 {new: true}
             );
+            let orderUpdate = await orderModel.findOneAndUpdate({_id: orderId},{$set: {status}}, {new: true});
             return res.status(200).json({status: true, message:`Order completed successfully`, data: orderUpdate});
         }
         if(status == 'cancelled'){
             if(orderData.cancellable == false) return res.status(400).json({status: false, message: `Order can't be cancelled, because products in your cart are not canacellable`});
             if(orderData.status == 'completed') return res.status(400).json({status: false, message: `Order can't be cancelled, because it is already completed`});
             if(orderData.status == 'cancelled') return res.status(400).json({status: false, message: `Your order is already cancelled`});
-            let orderUpdate = await cartModel.findByIdAndUpdate({_id: orderId},
+            await cartModel.findOneAndUpdate({userId},
                 {$set: {items: [], totalPrice: 0, totalItems: 0, totalQuantity: 0, status}},
                 {new: true}
             );
+            let orderUpdate = await orderModel.findOneAndUpdate({_id: orderId},{$set: {status}}, {new: true});
             return res.status(200).json({status: true, message: `Order cancelled successfully`, data: orderUpdate});
         }
     }

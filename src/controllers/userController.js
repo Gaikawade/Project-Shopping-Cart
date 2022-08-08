@@ -37,6 +37,14 @@ const signUp = async (req, res) => {
         if(!shipping) return res.status(400).json({status: false, message: `Please enter shipping address`});
         if(!billing) return res.status(400).json({status: false, message: `Please enter billing address`});
 
+        if(!Object.hasOwnProperty.bind(shipping)(`street`)) return res.status(400).json({status: false, message: `Please enter shipping street`});
+        if(!Object.hasOwnProperty.bind(shipping)(`city`)) return res.status(400).json({status: false, message: `Please enter shipping city`});
+        if(!Object.hasOwnProperty.bind(shipping)(`pincode`)) return res.status(400).json({status: false, message: `Please enter shipping pincode`});
+
+        if(!Object.hasOwnProperty.bind(billing)(`street`)) return res.status(400).json({status: false, message: `Please enter billing street`});
+        if(!Object.hasOwnProperty.bind(billing)(`city`)) return res.status(400).json({status: false, message: `Please enter billing city`});
+        if(!Object.hasOwnProperty.bind(billing)(`pincode`)) return res.status(400).json({status: false, message: `Please enter billing pincode`});
+
         if(!isValid(shipping.street)) return res.status(400).json({status: false, message: `Please enter valid shipping street`});
         if(!isValidName(shipping.city)) return res.status(400).json({status: false, message: `Please enter valid shipping city`});
         if(!isValidPincode(shipping.pincode)) return res.status(400).json({status: false, message: `Please enter valid shipping pincode`});
@@ -127,7 +135,7 @@ const updateProfile = async (req, res) => {
 
         let {fname, lname, email, password, phone, address} = data;
 
-        if(Object.hasOwnProperty.bind(data)(`fname`)){  //*same as data.hasOwnProperty(`fname`)
+        if(Object.hasOwnProperty.bind(data)(`fname`)){  //?data.hasOwnProperty(`fname`)
             if(fname == '') return res.status(400).json({status: false, message: `First Name field can be empty`});
             if(!isValidName(fname))  return res.status(400).json({status: false, message: `Please enter a valid first name`});
             userData.fname = fname;

@@ -24,7 +24,7 @@ const listing = async (req, res) => {
 
         if(!isValid(description)) return res.status(400).json({status: false, message: `This is not a valid Description`});
 
-        if(!/^\d+(?:\.\d{1,2})?$/.test(price)) return res.status(400).json({status: false, message: `Please enter a valid listing price`});
+        if(!/^\d+(?:\.\d{2})?$/.test(price)) return res.status(400).json({status: false, message: `Please enter a valid listing price`});
 
         if(Object.hasOwnProperty.bind(data)(`currencyId`)){
             currencyId = currencyId.trim().toUpperCase();
